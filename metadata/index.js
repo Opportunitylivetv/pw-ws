@@ -50,25 +50,29 @@ const contentProcessors = {
     return res.text().then((ical) => {
       const jcal = ICAL.parse(ical);
       const icalComponent = new ICAL.Component(jcal);
+      const calendarName = icalComponent.getFirstPropertyValue('x-wr-calname');
       const events = icalComponent.getAllSubcomponents('vevent').map(vevent => new ICAL.Event(vevent));
 
 
       const calendarEvents = events.map(function(event) {
         return {
-          summary: event.summary,
+          name: event.summary,
           description: event.description,
           organizer: event.organizer,
           attendee_count: event.attendees.length,
           duration_seconds: event.duration.toSeconds(),
           start: event.startDate.toJSDate().getTime() / 1000,
           end: event.endDate.toJSDate().getTime() / 1000,
-          location: event.location
+          location: event.location,
         };
       });
 
       const metadata = {
         type: 'calendar',
-        calendar: calendarEvents
+        calendar: {
+          name: calendarName,
+          events: calendarEvents
+        }
       };
 
       return metadata;
